@@ -1,150 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#4a6741">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg">
-<title>RPFVA Field Sheet</title>
-<style>
-body { font: 15px/1.4 Arial, sans-serif; margin: 0; background: #f5f5f0; color: #222; padding-bottom: 80px; }
-header { background: #4a6741; color: #fff; padding: 10px 12px; }
-header h1 { margin: 0; font-size: 18px; }
-header p { margin: 2px 0 0; font-size: 12px; color: #dfe7dc; }
-section { background: #fff; border: 1px solid #bbb; padding: 10px 12px; margin: 10px; }
-h2 { font-size: 15px; margin: 0 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-h3 { font-size: 14px; margin: 12px 0 4px; }
-label.f { display: block; font-size: 12px; color: #555; margin-top: 8px; }
-input[type=text], input[type=number], input[type=date], textarea {
-  width: 100%; padding: 7px; font: inherit; border: 1px solid #999; background: #fff; color: #222;
-}
-.opts { margin: 4px 0; }
-.opts label { display: inline-block; margin: 0 14px 4px 0; font-size: 14px; white-space: nowrap; }
-.opts input { vertical-align: -2px; }
-.row { border-top: 1px dotted #bbb; padding: 8px 0; }
-.row b { display: block; font-size: 13px; margin-bottom: 2px; }
-.note { font-size: 11px; color: #666; }
-.bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: #eee; border-top: 1px solid #aaa; }
-.bar button { width: 32%; padding: 10px 4px; font: 14px Arial; border: 1px solid #666; background: #ddd; }
-.bar button.p { background: #4a6741; color: #fff; }
-.gpsb { width: auto; padding: 6px 10px; margin-top: 6px; font-size: 13px; border: 1px solid #666; background: #ddd; }
-#msg { position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%); background: #333; color: #fff;
-  padding: 6px 12px; font-size: 12px; display: none; z-index: 9; }
-</style>
-</head>
-<body>
-<header>
-  <h1>RPFVA Field Sheet</h1>
-  <p>Rapid Participatory Forest &amp; Vegetation Assessment -- entries save automatically on this device</p>
-</header>
-
-<form id="f" onsubmit="return false">
-
-<section><h2>1. Site identification</h2>
-<label class="f">Village</label><input type="text" name="village">
-<label class="f">Sheet No</label><input type="text" name="sheet">
-<label class="f">GPS (lat, lon)</label><input type="text" name="gps" id="gps" placeholder="lat, lon">
-<button type="button" class="gpsb" onclick="getGPS()">Get my location</button>
-<h3>Landscape position</h3><div class="opts" data-g="landscape" data-t="c" data-o="Upper slope|Middle slope|Lower slope|Valley|River"></div>
-<label class="f">Other</label><input type="text" name="landscape_other"></section>
-
-<section><h2>2. Vegetation characteristics</h2>
-<h3>A. Main vegetation type</h3><div class="opts" data-g="vegtype" data-t="c" data-o="Natural forest|Woodland|Bushland / Shrubland|Grassland|Riparian vegetation|Wetland|Plantation|Farmland with scattered trees"></div>
-<label class="f">Plantation (species)</label><input type="text" name="plantation">
-<h3>B. Vegetation structure</h3><div class="opts" data-g="structure" data-t="r" data-o="Dense|Moderately open|Open|Very sparse"></div>
-<h3>C. Estimated tree canopy cover</h3><div class="opts" data-g="canopy" data-t="r" data-o="10%|30%|50%|70%|90%"></div>
-<p class="note">10% mostly exposed ground; 30% scattered crowns; 50% about half covered; 70% most covered; 90% nearly continuous</p>
-<h3>D. Dominant vegetation species</h3>
-<label class="f">Dominant tree species</label><textarea name="trees" rows="2"></textarea>
-<label class="f">Dominant shrubs / grasses</label><textarea name="shrubs" rows="2"></textarea></section>
-
-<section><h2>3. Plot assessment</h2>
-<h3>A. 10 m plot</h3>
-<label class="f">Trees &ge; 10 cm DBH (number)</label><input type="number" inputmode="numeric" min="0" name="trees10">
-<label class="f">Stumps (number)</label><input type="number" inputmode="numeric" min="0" name="stumps">
-<h3>B. 5 m plot (abundance)</h3>
-<div class="row"><b>Seedlings (&le; 1.5 m height)</b><div class="opts" data-g="seedlings" data-t="r" data-o="None|Few|Moderate|Abundant"></div></div>
-<div class="row"><b>Saplings (&ge; 1.5 m tall, &le; 10 cm DBH)</b><div class="opts" data-g="saplings" data-t="r" data-o="None|Few|Moderate|Abundant"></div></div>
-<div class="row"><b>Coppices / root suckers</b><div class="opts" data-g="coppices" data-t="r" data-o="None|Few|Moderate|Abundant"></div></div></section>
-
-<section><h2>4. Disturbance indicators</h2><div id="dist"></div></section>
-
-<section><h2>5. Photographic record</h2><div id="ph"></div>
-<button type="button" onclick="addPh()" style="margin-top:8px">Add photo row</button></section>
-
-<section><h2>Sign-off</h2>
-<label class="f">Name</label><input type="text" name="name">
-<label class="f">Signature (type name)</label><input type="text" name="sig">
-<label class="f">Date</label><input type="date" name="date"></section>
-</form>
-
-<div class="bar">
-  <button type="button" onclick="clr()">New sheet</button>
-  <button type="button" onclick="dl('xlsx')">Google Sheets</button>
-  <button type="button" class="p" onclick="dl('html')">Save sheet</button>
-</div>
-<div id="msg"></div>
-
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0a7d4b"><link rel="manifest" href="manifest.webmanifest"><title>RPFVA Field Sheet</title>
+<style>:root{--bg:#fff;--fg:#1a1a1a;--mu:#666;--cd:#f3f5f4;--bd:#cfd6d2;--ac:#0a7d4b;--rd:#c0392b}@media(prefers-color-scheme:dark){:root{--bg:#121212;--fg:#eee;--mu:#9a9a9a;--cd:#1e1e1e;--bd:#3a3a3a;--ac:#3ecf8e;--rd:#ff6b5b}}
+*{box-sizing:border-box}body{margin:0;padding:12px;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--fg);max-width:640px;margin:auto}h1{font-size:19px;margin:4px 0}h2{font-size:15px;margin:18px 0 6px;color:var(--ac)}
+#bar{position:sticky;top:0;z-index:5;padding:8px 10px;border-radius:8px;background:var(--ac);color:#fff;font-size:13px}#bar.w{background:var(--rd)}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 2px}input,select,textarea,button{font:inherit;width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--cd);color:var(--fg)}
+button{background:var(--ac);color:#fff;border:0;font-weight:600;cursor:pointer}button.s{background:var(--cd);color:var(--fg);border:1px solid var(--bd)}button.d{background:none;color:var(--rd);border:1px solid var(--rd)}
+.r{display:flex;gap:8px}.r>*{flex:1}.r>.n{flex:0 0 auto;width:auto}.it{background:var(--cd);border-radius:8px;padding:8px 10px;margin:6px 0;display:flex;align-items:center;gap:8px}.it span{flex:1;font-size:14px}.it button{width:auto;padding:6px 10px;font-size:13px}.mu{color:var(--mu);font-size:12px}</style></head><body>
+<h1>🌳 RPFVA Field Sheet</h1><div id="bar"></div>
+<div class="mu" id="edit"></div><div id="f"></div>
+<div class="r" style="margin-top:14px"><button id="sv">💾 Save site</button><button class="s" id="nw">New blank</button></div>
+<h2>Saved on this phone (<span id="cnt">0</span>)</h2><div id="l"></div>
+<h2>Backup</h2><button id="ex">⬇ Download ALL sites (one CSV sheet)</button>
+<div class="r" style="margin-top:8px"><button class="s" id="bj">⬇ Backup file (.json)</button><button class="s" id="rj">⬆ Restore backup</button></div><input type="file" id="fi" accept=".json" hidden>
+<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ab" style="width:auto" checked> Auto-download a backup CSV after every save</label>
+<p class="mu">Everything you type is saved on this phone instantly, even with no network or if the page closes. Download a backup CSV regularly and send it when you have signal.</p>
 <script>
-const KEY='rpfva_current',$=s=>document.querySelector(s),F=$('#f');
-const DIST=['Tree cutting / harvesting','Charcoal production','Fuelwood collection','Fire damage','Grazing / browsing','Agricultural encroachment','Settlement / infrastructure development','Soil erosion','Other'];
-function opt(g,t,v){const i=document.createElement('label');i.innerHTML=`<input type="${t=='c'?'checkbox':'radio'}" name="${g}" value="${v}"> ${v}`;return i}
-document.querySelectorAll('.opts[data-g]').forEach(d=>d.dataset.o.split('|').forEach(v=>d.append(opt(d.dataset.g,d.dataset.t,v))));
-DIST.forEach((x,i)=>{const r=document.createElement('div');r.className='row';
-r.innerHTML=`<b>${x}</b>${i==8?'<input type="text" name="d8_text" placeholder="Specify" style="margin-bottom:6px">':''}<div class="opts" data-g="d${i}p" data-t="r" data-o="Yes|No"></div><div class="opts" data-g="d${i}e" data-t="r" data-o="Observed|Reported"></div>`;
-$('#dist').append(r);r.querySelectorAll('.opts').forEach(d=>d.dataset.o.split('|').forEach(v=>d.append(opt(d.dataset.g,'r',v))))});
-function addPh(id='',ob=''){const r=document.createElement('div');r.className='row';r.innerHTML=`<input type="text" name="ph_id" placeholder="Photo ID" value="${id}"><textarea name="ph_ob" rows="2" placeholder="Observation" style="margin-top:4px">${ob}</textarea>`;$('#ph').append(r)}
-function getGPS(){if(!navigator.geolocation)return toast('GPS not available');toast('Getting location...');
-navigator.geolocation.getCurrentPosition(p=>{$('#gps').value=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6);save();toast('Location added')},()=>toast('Could not get location'),{enableHighAccuracy:true,timeout:15000})}
-function toast(t){const m=$('#msg');m.textContent=t;m.style.display='block';setTimeout(()=>m.style.display='none',2200)}
-function collect(){const d={};
-F.querySelectorAll('input[type=text],input[type=number],input[type=date],textarea').forEach(e=>{if(e.name&&!e.name.startsWith('ph_'))d[e.name]=e.value});
-const g={};F.querySelectorAll('input[type=checkbox]:checked,input[type=radio]:checked').forEach(e=>(g[e.name]=g[e.name]||[]).push(e.value));
-d._g=g;d._ph=[...document.querySelectorAll('#ph .row')].map(r=>[r.querySelector('input').value,r.querySelector('textarea').value]);return d}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(collect()))}catch(e){}}
-function load(){let d;try{d=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(d){F.querySelectorAll('input[type=text],input[type=number],input[type=date],textarea').forEach(e=>{if(e.name&&d[e.name]!=null&&!e.name.startsWith('ph_'))e.value=d[e.name]});
-F.querySelectorAll('input[type=checkbox],input[type=radio]').forEach(e=>e.checked=(d._g[e.name]||[]).includes(e.value));
-(d._ph||[]).forEach(p=>addPh(p[0],p[1]))}
-if(!$('#ph .row'))addPh();if(!F.date.value)F.date.value=new Date().toISOString().slice(0,10)}
-F.addEventListener('input',save);F.addEventListener('change',save);
-function clr(){if(confirm('Start a new sheet? Download the current one first - this clears all fields.')){localStorage.removeItem(KEY);location.reload()}}
-const V=(d,k)=>(d._g[k]||[]).join(', ');
-function rows(d){const r=[['Village',d.village],['Sheet No',d.sheet],['GPS',d.gps],['Landscape position',V(d,'landscape')],['Landscape other',d.landscape_other],
-['Main vegetation type',V(d,'vegtype')],['Plantation species',d.plantation],['Vegetation structure',V(d,'structure')],['Tree canopy cover',V(d,'canopy')],
-['Dominant tree species',d.trees],['Dominant shrubs / grasses',d.shrubs],['Trees >=10 cm DBH (10 m plot)',d.trees10],['Stumps (10 m plot)',d.stumps],
-['Seedlings (5 m plot)',V(d,'seedlings')],['Saplings (5 m plot)',V(d,'saplings')],['Coppices / root suckers (5 m plot)',V(d,'coppices')]];
-DIST.forEach((x,i)=>r.push(['Disturbance: '+(i==8&&d.d8_text?'Other - '+d.d8_text:x),[V(d,'d'+i+'p'),V(d,'d'+i+'e')].filter(Boolean).join(' / ')]));
-d._ph.forEach((p,i)=>{if(p[0]||p[1])r.push(['Photo '+(i+1)+' ID / observation',p[0]+' - '+p[1]])});
-r.push(['Name',d.name],['Signature',d.sig],['Date',d.date]);return r.map(x=>[x[0],x[1]||''])}
+const O={pos:['Upper slope','Middle slope','Lower slope','Valley','Ridge / hilltop','Flat / plateau','Other'],veg:['Natural forest','Woodland, Bushland / Shrubland','Riparian vegetation','Farmland with scattered trees','Plantation','Grassland','Other'],st:['Dense','Moderate','Open','Very sparse'],ab:['None','Few','Moderate','Many'],ds:['No','No / Observed','Yes','Yes / Observed']};
+const DN=['Tree cutting / harvesting','Charcoal production','Fuelwood collection','Fire damage','Grazing / browsing','Agricultural encroachment','Settlement / infrastructure development','Soil erosion'];
+const F=[['Sheet No','t'],['Village','t'],['GPS','g'],['Landscape position','s',O.pos],['Landscape other','t'],['Main vegetation type','s',O.veg],['Plantation species','t'],['Vegetation structure','s',O.st],['Tree canopy cover (%)','n'],['Dominant tree species','t'],['Dominant shrubs / grasses','t'],['Trees >=10 cm DBH (10 m plot)','n'],['Stumps (10 m plot)','n'],['Seedlings (5 m plot)','s',O.ab],['Saplings (5 m plot)','s',O.ab],['Coppices / root suckers (5 m plot)','s',O.ab],...DN.map(d=>['Disturbance: '+d,'s',O.ds]),['Disturbance: Other','t'],['Photo 1 ID / observation','a'],['Photo 2 ID / observation','a'],['Photo 3 ID / observation','a'],['Photo 4 ID / observation','a'],['Name','t'],['Signature','t'],['Date','d']];
+const $=s=>document.querySelector(s),KEY='rpfva_v1',today=()=>new Date().toISOString().slice(0,10);
+let S={recs:[],trash:[],draft:{},lastExp:0,ts:0},persisted=false;
+function idb(){return new Promise((a,b)=>{const r=indexedDB.open('rpfva',1);r.onupgradeneeded=()=>r.result.createObjectStore('s');r.onsuccess=()=>a(r.result);r.onerror=b})}
+async function idbSet(v){try{(await idb()).transaction('s','readwrite').objectStore('s').put(v,'state')}catch(e){}}
+async function idbGet(){try{const d=await idb();return await new Promise(r=>{const q=d.transaction('s').objectStore('s').get('state');q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}}
+function persist(){S.ts=Date.now();const j=JSON.stringify(S);try{localStorage.setItem(KEY,j)}catch(e){}idbSet(j);bar()}
+function bar(){const n=S.recs.filter(r=>r.upd>S.lastExp).length,b=$('#bar');b.className=n?'w':'';b.textContent=S.recs.length+' saved · '+(n?n+' NOT yet downloaded':'all downloaded')+' · protected storage: '+(persisted?'yes':'no (download backups!)');$('#cnt').textContent=S.recs.length}
+const nextNo=()=>String(Math.max(0,...S.recs.map(r=>parseInt(r['Sheet No'])||0))+1).padStart(2,'0');
+function blank(){S.draft={Date:today(),'Sheet No':nextNo()};fill();persist()}
+function fill(){document.querySelectorAll('[data-k]').forEach(e=>e.value=S.draft[e.dataset.k]||'');$('#edit').textContent=S.draft.id?'Editing saved sheet '+S.draft['Sheet No']:'New sheet (autosaved as draft)'}
+function build(){$('#f').innerHTML=F.map(([k,t,o])=>{const l=`<label>${k}</label>`;if(t=='s')return l+`<select data-k="${k}"><option value=""></option>${o.map(x=>`<option>${x}</option>`).join('')}</select>`;if(t=='a')return l+`<textarea rows="2" data-k="${k}"></textarea>`;if(t=='g')return l+`<div class="r"><input data-k="${k}" placeholder="-3.832664, 35.686475" inputmode="text"><button class="s n" type="button" id="gp">📍 GPS</button></div>`;return l+`<input data-k="${k}" type="${t=='n'?'number':t=='d'?'date':'text'}" ${t=='n'?'inputmode="decimal"':''}>`}).join('');
+document.querySelectorAll('[data-k]').forEach(e=>e.addEventListener('input',()=>{S.draft[e.dataset.k]=e.value;persist()}));
+$('#gp').onclick=()=>{const b=$('#gp');b.textContent='…';navigator.geolocation.getCurrentPosition(p=>{const v=p.coords.latitude.toFixed(6)+', '+p.coords.longitude.toFixed(6),e=document.querySelector('[data-k="GPS"]');e.value=v;S.draft.GPS=v;persist();b.textContent='📍 GPS'},()=>{b.textContent='📍 GPS';alert('No GPS fix. Type it in manually.')},{enableHighAccuracy:true,timeout:30000})}}
+function save(){const d=S.draft;if(!d['Sheet No']){alert('Enter Sheet No first');return}
+if(S.recs.some(r=>r.id!=d.id&&r['Sheet No']==d['Sheet No'])&&!confirm('Sheet '+d['Sheet No']+' already saved. Save as a second copy?'))return;
+const r={...d,id:d.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),upd:Date.now()},i=S.recs.findIndex(x=>x.id==r.id);i<0?S.recs.push(r):S.recs[i]=r;
+blank();list();if($('#ab').checked)exportCSV();scrollTo(0,0)}
+function list(){$('#l').innerHTML=S.recs.slice().sort((a,b)=>b.upd-a.upd).map(r=>`<div class="it"><span><b>${esc(r['Sheet No'])}</b> ${esc(r.Village||'')} <i class="mu">${new Date(r.upd).toLocaleString()}</i></span><button class="s" data-e="${r.id}">Edit</button><button class="d" data-x="${r.id}">✕</button></div>`).join('');bar()}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function crc32(b){const t=crc32.t||(crc32.t=Array.from({length:256},(_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0}));let r=-1;for(let i=0;i<b.length;i++)r=t[(r^b[i])&255]^(r>>>8);return(r^-1)>>>0}
-function zip(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
-files.forEach(([n,s])=>{const nb=enc.encode(n),d=enc.encode(s),c=crc32(d);
-const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nb.length,true);
-parts.push(new Uint8Array(h.buffer),nb,d);
-const e=new DataView(new ArrayBuffer(46));e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint16(8,0x0800,true);e.setUint16(14,0x21,true);e.setUint32(16,c,true);e.setUint32(20,d.length,true);e.setUint32(24,d.length,true);e.setUint16(28,nb.length,true);e.setUint32(42,off,true);
-cen.push(new Uint8Array(e.buffer),nb);off+=30+nb.length+d.length});
-const cs=cen.reduce((a,x)=>a+x.length,0),z=new DataView(new ArrayBuffer(22));z.setUint32(0,0x06054b50,true);z.setUint16(8,files.length,true);z.setUint16(10,files.length,true);z.setUint32(12,cs,true);z.setUint32(16,off,true);
-return new Blob([...parts,...cen,new Uint8Array(z.buffer)])}
-function xlsx(r){const x=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const cell=(v,b)=>`<c t="inlineStr"${b?' s="1"':''}><is><t xml:space="preserve">${x(v)}</t></is></c>`;
-const sh=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="42" customWidth="1"/><col min="2" max="2" width="60" customWidth="1"/></cols><sheetData>`+[['Field','Value']].concat(r).map((q,i)=>`<row>${cell(q[0],1)}${cell(q[1],i==0)}</row>`).join('')+`</sheetData></worksheet>`;
-const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
-return zip([['[Content_Types].xml',H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
-['_rels/.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
-['xl/workbook.xml',H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="RPFVA" sheetId="1" r:id="rId1"/></sheets></workbook>'],
-['xl/_rels/workbook.xml.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
-['xl/styles.xml',H+'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><name val="Arial"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="2"><xf fontId="0"/><xf fontId="1" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'],
-['xl/worksheets/sheet1.xml',sh]])}
-function dl(t){save();const d=collect(),r=rows(d);let body,mime,ext;
-const nm='RPFVA_'+(d.village||'site').replace(/\W+/g,'_')+'_'+(d.sheet||'1')+'_'+(d.date||'');
-if(t=='xlsx'){body=xlsx(r);mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';ext='xlsx'}else if(t=='csv'){body='\ufeffField,Value\n'+r.map(x=>x.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');mime='text/csv';ext='csv'}
-else{body=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(nm)}</title><style>body{font:13px Arial;margin:14px}table{border-collapse:collapse;width:100%}td{border:1px solid #888;padding:5px;vertical-align:top}td:first-child{font-weight:bold;width:42%;background:#eee}</style></head><body><h2>RPFVA - Rapid Participatory Forest &amp; Vegetation Assessment</h2><table>${r.map(x=>`<tr><td>${esc(x[0])}</td><td>${esc(x[1])}</td></tr>`).join('')}</table></body></html>`;mime='text/html';ext='html'}
-const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type:mime}));a.download=nm+'.'+ext;document.body.append(a);a.click();a.remove();toast('Saved to Downloads')}
-load();
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-</script>
-</body>
-</html>
+$('#l').onclick=e=>{const id=e.target.dataset.e||e.target.dataset.x,r=S.recs.find(x=>x.id==id);if(!r)return;if(e.target.dataset.e){S.draft={...r};fill();persist();scrollTo(0,0)}else if(confirm('Remove sheet '+r['Sheet No']+'? (a copy stays in the backup file)')){S.trash.push(r);S.recs=S.recs.filter(x=>x.id!=id);list();persist()}};
+const q=v=>{v=v==null?'':String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+function dl(n,t,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:m}));a.download=n;document.body.appendChild(a);a.click();a.remove()}
+function exportCSV(){const names=F.map(f=>f[0]),H=['Sheet No','Village','GPS','Latitude','Longitude',...names.slice(3).map(n=>n.replace(' (%)','')),'Fields filled','Source file(s)'];
+const rows=S.recs.slice().sort((a,b)=>(a['Sheet No']>b['Sheet No']?1:-1)).map(r=>{const m=(r.GPS||'').match(/-?\d+(\.\d+)?/g)||[],c=r['Tree canopy cover (%)'],v=[r['Sheet No'],r.Village,r.GPS,m[0],m[1],...names.slice(3).map(n=>n=='Tree canopy cover (%)'&&c!==''&&c!=null?c/100:r[n])],k=v.slice(5,34).filter(x=>x!==''&&x!=null).length;return[...v,k+' / 29','app'].map(q).join(',')});
+dl('RPFVA_all_sites_'+today()+'.csv','\ufeff'+[H.map(q).join(','),...rows].join('\r\n'),'text/csv;charset=utf-8');S.lastExp=Date.now();persist()}
+$('#ex').onclick=exportCSV;$('#sv').onclick=save;$('#nw').onclick=()=>{if(confirm('Start a blank sheet? The current draft is kept only if you saved it.'))blank()};
+$('#bj').onclick=()=>{dl('RPFVA_backup_'+today()+'.json',JSON.stringify(S),'application/json');S.lastExp=Date.now();persist()};
+$('#rj').onclick=()=>$('#fi').click();$('#fi').onchange=async e=>{try{const b=JSON.parse(await e.target.files[0].text());(b.recs||[]).concat(b.trash||[]).forEach(r=>{if(!S.recs.some(x=>x.id==r.id))S.recs.push(r)});list();persist();alert('Restored')}catch(x){alert('Not a valid backup file')}};
+(async()=>{let a=null,b=null;try{a=JSON.parse(localStorage.getItem(KEY))}catch(e){}try{b=JSON.parse(await idbGet())}catch(e){}
+S={...S,...[a,b].filter(Boolean).sort((x,y)=>y.ts-x.ts)[0]};if(a&&b){[a,b].forEach(s=>s.recs.forEach(r=>{if(!S.recs.some(x=>x.id==r.id))S.recs.push(r)}))}
+build();if(!S.draft||!Object.keys(S.draft).length)S.draft={Date:today(),'Sheet No':nextNo()};fill();list();
+try{if(navigator.storage&&navigator.storage.persist){persisted=await navigator.storage.persist()}}catch(e){}persist();
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{})})();
+</script></body></html>
