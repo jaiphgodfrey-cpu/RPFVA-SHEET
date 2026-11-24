@@ -8,7 +8,7 @@
 <link rel="icon" href="icon.svg">
 <title>RPFVA Field Sheet</title>
 <style>
-body { font: 15px/1.4 Arial, sans-serif; margin: 0; background: #f5f5f0; color: #222; padding-bottom: 80px; }
+body { font: 15px/1.4 Arial, sans-serif; margin: 0; background: #f5f5f0; color: #222; padding-bottom: 130px; }
 header { background: #4a6741; color: #fff; padding: 10px 12px; }
 header h1 { margin: 0; font-size: 18px; }
 header p { margin: 2px 0 0; font-size: 12px; color: #dfe7dc; }
@@ -29,8 +29,9 @@ input[type=text], input[type=number], input[type=date], textarea {
 .bar button { width: 32%; padding: 10px 4px; font: 14px Arial; border: 1px solid #666; background: #ddd; }
 .bar button.p { background: #4a6741; color: #fff; }
 .gpsb { width: auto; padding: 6px 10px; margin-top: 6px; font-size: 13px; border: 1px solid #666; background: #ddd; }
-#msg { position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%); background: #333; color: #fff;
+#msg { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: #333; color: #fff;
   padding: 6px 12px; font-size: 12px; display: none; z-index: 9; }
+#st{font-size:12px;padding:0 2px 6px;cursor:pointer}#panel{max-height:45vh;overflow:auto;background:#fff;border:1px solid #bbb;padding:6px 8px;margin-bottom:6px}#panel button{width:auto;padding:8px 10px;margin:4px 4px 0 0;font:13px Arial}
 .lb{width:auto;padding:8px 10px;margin:4px 4px 0 0;font:13px Arial;border:1px solid #666;background:#ddd}
 .li{display:flex;gap:6px;align-items:center;border-top:1px dotted #bbb;padding:6px 0;font-size:13px}.li span{flex:1}
 </style>
@@ -81,14 +82,14 @@ input[type=text], input[type=number], input[type=date], textarea {
 <label class="f">Date</label><input type="date" name="date"></section>
 </form>
 
-<section><h2>Saved sheets on this device (<span id="cnt">0</span>)</h2><div id="lib"></div>
-<button type="button" class="lb" style="background:#4a6741;color:#fff" onclick="csvAll()">Download ALL sheets (one CSV)</button><button type="button" class="lb" onclick="bkp()">Backup file</button><button type="button" class="lb" onclick="$('#rf').click()">Restore backup</button><input type="file" id="rf" accept=".json" hidden onchange="rst(this)">
-<p class="note" id="st"></p></section>
-
 <div class="bar">
-  <button type="button" onclick="clr()">New sheet</button>
-  <button type="button" onclick="dl('xlsx')">Google Sheets</button>
+  <div id="st" onclick="tp()"></div>
+  <div id="panel" style="display:none"><div id="lib"></div>
+    <button type="button" onclick="dl('xlsx')">This sheet (Google Sheets)</button><button type="button" onclick="bkp()">Backup file</button><button type="button" onclick="$('#rf').click()">Restore backup</button><input type="file" id="rf" accept=".json" hidden onchange="rst(this)">
+  </div>
+  <button type="button" class="p" onclick="clr()">New sheet</button>
   <button type="button" class="p" onclick="dl('html')">Save sheet</button>
+  <button type="button" class="p" onclick="csvAll()">All sheets</button>
 </div>
 <div id="msg"></div>
 
@@ -116,9 +117,9 @@ async function idbGet(k){try{const d=await idb();return await new Promise(r=>{co
 function hasData(d){return Object.keys(d).some(k=>k[0]!='_'&&k!='date'&&d[k])||Object.keys(d._g).length>0||d._ph.some(p=>p[0]||p[1])}
 function pl(){const j=JSON.stringify(LIB);try{localStorage.setItem(LK,j)}catch(e){}idbSet('lib',j);stat()}
 function save(){const d=collect();try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}if(hasData(d)){d._upd=Date.now();LIB.sheets[ID]=d;pl()}}
-function stat(){const n=Object.keys(LIB.sheets).length,u=Object.values(LIB.sheets).filter(s=>s._upd>LIB.exp).length,s=$('#st');$('#cnt').textContent=n;
-s.textContent=n+' saved on this device - '+(u?u+' not yet in a downloaded CSV/backup':'all included in last download')+' - protected storage: '+(prot?'yes':'no (download backups often)');s.style.color=u?'#b03020':'#555';
+function stat(){const n=Object.keys(LIB.sheets).length,u=Object.values(LIB.sheets).filter(s=>s._upd>LIB.exp).length,s=$('#st');s.textContent=n+' saved - '+(u?u+' not yet downloaded':'all downloaded')+' - '+(prot?'storage protected':'storage NOT protected')+'  \u25B2 list';s.style.color=u?'#b03020':'#2d5a27';
 $('#lib').innerHTML=Object.entries(LIB.sheets).sort((a,b)=>b[1]._upd-a[1]._upd).map(([id,x])=>`<div class="li"><span><b>${esc(x.sheet||'?')}</b> ${esc(x.village||'')} <i>${new Date(x._upd).toLocaleString()}</i></span>${id==ID?'<i>(open)</i>':`<button type="button" class="lb" onclick="opn('${id}')">Open</button><button type="button" class="lb" onclick="del('${id}')">&#10005;</button>`}</div>`).join('')}
+function tp(){const p=$('#panel');p.style.display=p.style.display=='none'?'block':'none'}
 function opn(id){save();try{localStorage.setItem(KEY,JSON.stringify(LIB.sheets[id]))}catch(e){return toast('Could not open')}location.reload()}
 function del(id){if(confirm('Remove this sheet from the list? A copy stays inside the backup file.')){LIB.trash[id]=LIB.sheets[id];delete LIB.sheets[id];pl()}}
 function dlf(n,b,m){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([b],{type:m}));a.download=n;document.body.append(a);a.click();a.remove()}
